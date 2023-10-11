@@ -1,96 +1,130 @@
-# Obsidian Sample Plugin
+# Sample Plugin for Obsidian MathLinks API 
 
-This is a sample plugin for Obsidian (https://obsidian.md).
+This is a sample [Obsidian.md](https://obsidian.md) plugin for demonstrating the usage of [MathLinks](https://github.com/zhaoshenzhai/obsidian-mathlinks) API.
 
-This project uses Typescript to provide type checking and documentation.
-The repo depends on the latest plugin API (obsidian.d.ts) in Typescript Definition format, which contains TSDoc comments describing what it does.
+**MathLinks** is a community plugin that renders MathJax in your links.
+However, its power is not limited to math. Essentially, it can be used to
+- change how a link is displayed
+- _(planned)_ using arbitrary inline markdown formatting syntaxes supported by Obsidian (see [here](https://help.obsidian.md/Editing+and+formatting/Basic+formatting+syntax) and [here](https://help.obsidian.md/Editing+and+formatting/Advanced+formatting+syntax#Math))
+	- Currently, only inline math is supported, but we will support for other syntaxes will come soon.
+- without actually touching your note's content (e.g. typing an alias for each link), as well as dynamically update the displayed contents.
 
-**Note:** The Obsidian API is still in early alpha and is subject to change at any time!
+**MathLinks API** is here with you to allow other community plugins to utilize this power! 
+This repository contains a sample plugin that displays a link to a heading/block like this:
 
-This sample plugin demonstrates some of the basic functionality the plugin API can do.
-- Adds a ribbon icon, which shows a Notice when clicked.
-- Adds a command "Open Sample Modal" which opens a Modal.
-- Adds a plugin setting tab to the settings page.
-- Registers a global click event and output 'click' to the console.
-- Registers a global interval which logs 'setInterval' to the console.
+![without property](fig/without-property.png)
 
-## First time developing plugins?
+Moreover, if the note's property contains a certain key that the user defines in the plugin's setting tab (`link-display` by default), the note title in the links will be replaced with the corresponding property value:
 
-Quick starting guide for new plugin devs:
+![with property](fig/with-property.png)
 
-- Check if [someone already developed a plugin for what you want](https://obsidian.md/plugins)! There might be an existing plugin similar enough that you can partner up with.
-- Make a copy of this repo as a template with the "Use this template" button (login to GitHub if you don't see it).
-- Clone your repo to a local development folder. For convenience, you can place this folder in your `.obsidian/plugins/your-plugin-name` folder.
-- Install NodeJS, then run `npm i` in the command line under your repo folder.
-- Run `npm run dev` to compile your plugin from `main.ts` to `main.js`.
-- Make changes to `main.ts` (or create new `.ts` files). Those changes should be automatically compiled into `main.js`.
-- Reload Obsidian to load the new version of your plugin.
-- Enable plugin in settings window.
-- For updates to the Obsidian API run `npm update` in the command line under your repo folder.
+> [!WARNING]
+> This plugin uses currently unreleased APIs.
 
-## Releasing new releases
 
-- Update your `manifest.json` with your new version number, such as `1.0.1`, and the minimum Obsidian version required for your latest release.
-- Update your `versions.json` file with `"new-plugin-version": "minimum-obsidian-version"` so older versions of Obsidian can download an older version of your plugin that's compatible.
-- Create new GitHub release using your new version number as the "Tag version". Use the exact version number, don't include a prefix `v`. See here for an example: https://github.com/obsidianmd/obsidian-sample-plugin/releases
-- Upload the files `manifest.json`, `main.js`, `styles.css` as binary attachments. Note: The manifest.json file must be in two places, first the root path of your repository and also in the release.
-- Publish the release.
+## Usage
 
-> You can simplify the version bump process by running `npm version patch`, `npm version minor` or `npm version major` after updating `minAppVersion` manually in `manifest.json`.
-> The command will bump version in `manifest.json` and `package.json`, and add the entry for the new version to `versions.json`
+In this section, I will walk you through how to use MathLinks API. 
 
-## Adding your plugin to the community plugin list
+### Installation
 
-- Check https://github.com/obsidianmd/obsidian-releases/blob/master/plugin-review.md
-- Publish an initial version.
-- Make sure you have a `README.md` file in the root of your repo.
-- Make a pull request at https://github.com/obsidianmd/obsidian-releases to add your plugin.
+```
+$ npm i -D obsidian-mathlinks
+```
 
-## How to use
+### Import
 
-- Clone this repo.
-- Make sure your NodeJS is at least v16 (`node --version`).
-- `npm i` or `yarn` to install dependencies.
-- `npm run dev` to start compilation in watch mode.
+```ts
+import { Provider, addProvider } from 'obsidian-mathlinks';
+```
 
-## Manually installing the plugin
+### Implement a custom provider
 
-- Copy over `main.js`, `styles.css`, `manifest.json` to your vault `VaultFolder/.obsidian/plugins/your-plugin-id/`.
+Given a pre-processed information of a link, `Provider` determines how the link is displayed through its `provide` method.
 
-## Improve code quality with eslint (optional)
-- [ESLint](https://eslint.org/) is a tool that analyzes your code to quickly find problems. You can run ESLint against your plugin to find common bugs and ways to improve your code. 
-- To use eslint with this project, make sure to install eslint from terminal:
-  - `npm install -g eslint`
-- To use eslint to analyze this project use this command:
-  - `eslint main.ts`
-  - eslint will then create a report with suggestions for code improvement by file and line number.
-- If your source code is in a folder, such as `src`, you can use eslint with this command to analyze all files in that folder:
-  - `eslint .\src\`
+Let's take a link `[[Note#heading]]` as an example.
+In this case, the "pre-processed information" contains:
 
-## Funding URL
+- `parsedLinktext: { path: string, subpath: string }` - `{ path: 'Note', subpath: '#heading' }`
+- `targetFile: TFile | null ` - [TFile](https://docs.obsidian.md/Reference/TypeScript+API/TFile/TFile)  object for `Note.md`
+- `targetSubpathResult: HeadingSubpathResult | BlockSubpathResult | null`  - The heading's information given by [resolveSubpath](https://docs.obsidian.md/Reference/TypeScript+API/resolveSubpath)
+- `sourceFile` - [TFile](https://docs.obsidian.md/Reference/TypeScript+API/TFile/TFile)  object for the note where this link is stored in
 
-You can include funding URLs where people who use your plugin can financially support it.
+To implement your custom provider, define a subclass of `Provider` and implement its `provide` method. It should return
+- `string` that will be interpreted as a markdown source for the link's displayed text
+	- in the near future, arbitrary inline markdown syntaxes such as `**bold**`/`$math$` will be allowed. But currently, only inline math is supported.
+- or `null` when your provider doesn't want to provide any custom displayed text. 
+	- In other word, your provider will be ignored when returning `null`.
 
-The simple way is to set the `fundingUrl` field to your link in your `manifest.json` file:
+```ts
+class MyProvider extends Provider {
+	constructor(mathLinks: any, public plugin: MyPlugin) {
+		super(mathLinks);
+	}
 
-```json
-{
-    "fundingUrl": "https://buymeacoffee.com"
+	provide(
+		parsedLinktext: { path: string, subpath: string },
+		targetFile: TFile | null,
+		targetSubpathResult: HeadingSubpathResult | BlockSubpathResult | null,
+		sourceFile: TFile
+	): string | null {
+
+		const { app, settings } = this.plugin;
+		const { path, subpath } = parsedLinktext;
+
+		if (!targetFile) return null;
+
+		const targetCache = app.metadataCache.getFileCache(targetFile);
+		const noteTitleDisplay = targetCache?.frontmatter?.[settings.key] ?? targetFile.basename;
+		
+		if (typeof noteTitleDisplay != 'string') return null;
+
+		if (targetSubpathResult?.type == 'heading') {
+			return (path ? `${noteTitleDisplay} - ` : '')
+				+ `h${targetSubpathResult.current.level}:${targetSubpathResult.current.heading}`;
+		} else if (targetSubpathResult?.type == 'block') {
+			const { id } = targetSubpathResult.block;
+			let blockType = targetCache?.sections?.find(section => section.id == id)?.type;
+			if (!blockType && targetCache?.listItems?.find(section => section.id == id)) {
+				blockType = 'listitem';
+			}
+			blockType = blockType ?? 'block';
+			return (path ? `${noteTitleDisplay} - ` : '')
+				+ `${blockType}:${id}`;
+		}
+
+		return noteTitleDisplay;
+	}
 }
 ```
 
-If you have multiple URLs, you can also do:
+### Register your provider
 
-```json
-{
-    "fundingUrl": {
-        "Buy Me a Coffee": "https://buymeacoffee.com",
-        "GitHub Sponsor": "https://github.com/sponsors",
-        "Patreon": "https://www.patreon.com/"
-    }
+In the `onload` method of your plugin, register your custom provider.
+
+- `addProvider` function creates an instance of your provider class using the factory function passed as the second parameter, and then registers it to MathLinks. Finally, it returns the provider object.
+	- You have accesss to the MathLinks plugin instance inside the factory function.
+- In most cases, you will want to pass the resulting provider to `addChild` method of your plugin so that the provider will properly unloaded when your plugin gets disabled. Otherwise, you are responsible to manage its lifecycle.
+
+```ts
+export default class MyPlugin extends Plugin {
+	async onload() {
+        ...
+		this.addChild(
+			addProvider(this.app, (mathLinks: any) => new MyProvider(mathLinks, this))
+		);		
+        ...
+	}
 }
 ```
 
-## API Documentation
+### Tell MathLinks to update the displayed text
 
-See https://github.com/obsidianmd/obsidian-api
+Use `update(app: App, file?: TFile)` to inform MathLinks that it should update the display text of links.
+If `file` is given, MathLinks will only update the notes affected by changes in that file.
+Otherwise, MathLinks will update all notes currently open.
+
+## Remarks
+
+- The users of your plugin have to install not only your plugin but also MathLinks.
+- A breaking change might be introduced in the future.
