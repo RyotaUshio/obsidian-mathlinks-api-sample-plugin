@@ -6,7 +6,7 @@ This is a sample [Obsidian.md](https://obsidian.md) plugin for demonstrating the
 However, its power is not limited to math. Essentially, it can be used to
 - change how a link is displayed
 - _(planned)_ using arbitrary inline markdown formatting syntaxes supported by Obsidian (see [here](https://help.obsidian.md/Editing+and+formatting/Basic+formatting+syntax) and [here](https://help.obsidian.md/Editing+and+formatting/Advanced+formatting+syntax#Math))
-	- Currently, only inline math is supported, but we will support for other syntaxes will come soon.
+	- Currently, only inline math is supported, but support for other syntaxes will also come soon.
 - without actually touching your note's content (e.g. typing an alias for each link), as well as dynamically update the displayed contents.
 
 **MathLinks API** is here with you to allow other community plugins to utilize this power! 
@@ -24,7 +24,7 @@ Moreover, if the note's property contains a certain key that the user defines in
 
 ## Usage
 
-In this section, I will walk you through how to use MathLinks API. 
+In this section, I will walk you through the process of building a simple plugin using MathLinks API. 
 
 ### Installation
 
