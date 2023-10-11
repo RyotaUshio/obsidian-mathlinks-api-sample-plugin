@@ -46,9 +46,9 @@ Let's take a link `[[Note#heading]]` as an example.
 In this case, the "pre-processed information" contains:
 
 - `parsedLinktext: { path: string, subpath: string }` - `{ path: 'Note', subpath: '#heading' }`
-- `targetFile: TFile | null ` - [TFile](https://docs.obsidian.md/Reference/TypeScript+API/TFile/TFile)  object for `Note.md`
+- `targetFile: TFile | null ` - [TFile](https://docs.obsidian.md/Reference/TypeScript+API/TFile/TFile)  object for `Note.md` if the link path `Note` is successfully resolved, `null` otherwise
 - `targetSubpathResult: HeadingSubpathResult | BlockSubpathResult | null`  - The heading's information given by [resolveSubpath](https://docs.obsidian.md/Reference/TypeScript+API/resolveSubpath)
-- `sourceFile` - [TFile](https://docs.obsidian.md/Reference/TypeScript+API/TFile/TFile)  object for the note where this link is stored in
+- `sourceFile: TFile` - [TFile](https://docs.obsidian.md/Reference/TypeScript+API/TFile/TFile)  object for the note where this link is stored in
 
 To implement your custom provider, define a subclass of `Provider` and implement its `provide` method. It should return
 - `string` that will be interpreted as a markdown source for the link's displayed text
