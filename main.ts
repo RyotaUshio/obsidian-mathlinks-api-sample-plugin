@@ -22,14 +22,16 @@ class MyProvider extends Provider {
 	): string | null {
 
 		const { app, settings } = this.plugin;
-		const { path, subpath } = parsedLinktext;
+		const { path } = parsedLinktext;
 
 		if (!targetFile) return null;
 
 		const targetCache = app.metadataCache.getFileCache(targetFile);
-		const noteTitleDisplay = targetCache?.frontmatter?.[settings.key] ?? targetFile.basename;
-		
-		if (typeof noteTitleDisplay != 'string') return null;
+		if (!targetCache) return null;
+
+		let noteTitleDisplay = targetCache.frontmatter?.[settings.key];
+
+		if (typeof noteTitleDisplay != 'string') noteTitleDisplay = targetFile.basename;
 
 		if (targetSubpathResult?.type == 'heading') {
 			return (path ? `${noteTitleDisplay} - ` : '')
@@ -80,7 +82,7 @@ class MySettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName('Property key')
-			.setDesc('What property do you want to use to specify how a link is displayed?')
+			.setDesc('What property do you want to use to specify how the note title is displayed in a link?')
 			.addText(text =>
 				text.setValue(this.plugin.settings.key)
 					.onChange(async (key) => {

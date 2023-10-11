@@ -70,14 +70,16 @@ class MyProvider extends Provider {
 	): string | null {
 
 		const { app, settings } = this.plugin;
-		const { path, subpath } = parsedLinktext;
+		const { path } = parsedLinktext;
 
 		if (!targetFile) return null;
 
 		const targetCache = app.metadataCache.getFileCache(targetFile);
-		const noteTitleDisplay = targetCache?.frontmatter?.[settings.key] ?? targetFile.basename;
-		
-		if (typeof noteTitleDisplay != 'string') return null;
+		if (!targetCache) return null;
+
+		let noteTitleDisplay = targetCache.frontmatter?.[settings.key];
+
+		if (typeof noteTitleDisplay != 'string') noteTitleDisplay = targetFile.basename;
 
 		if (targetSubpathResult?.type == 'heading') {
 			return (path ? `${noteTitleDisplay} - ` : '')
