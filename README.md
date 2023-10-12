@@ -56,49 +56,7 @@ To implement your custom provider, define a subclass of `Provider` and implement
 - or `null` when your provider doesn't want to provide any custom displayed text. 
 	- In other word, your provider will be ignored when returning `null`.
 
-```ts
-class MyProvider extends Provider {
-	constructor(mathLinks: any, public plugin: MyPlugin) {
-		super(mathLinks);
-	}
-
-	provide(
-		parsedLinktext: { path: string, subpath: string },
-		targetFile: TFile | null,
-		targetSubpathResult: HeadingSubpathResult | BlockSubpathResult | null,
-		sourceFile: TFile
-	): string | null {
-
-		const { app, settings } = this.plugin;
-		const { path } = parsedLinktext;
-
-		if (!targetFile) return null;
-
-		const targetCache = app.metadataCache.getFileCache(targetFile);
-		if (!targetCache) return null;
-
-		let noteTitleDisplay = targetCache.frontmatter?.[settings.key];
-
-		if (typeof noteTitleDisplay != 'string') noteTitleDisplay = targetFile.basename;
-
-		if (targetSubpathResult?.type == 'heading') {
-			return (path ? `${noteTitleDisplay} - ` : '')
-				+ `h${targetSubpathResult.current.level}:${targetSubpathResult.current.heading}`;
-		} else if (targetSubpathResult?.type == 'block') {
-			const { id } = targetSubpathResult.block;
-			let blockType = targetCache?.sections?.find(section => section.id == id)?.type;
-			if (!blockType && targetCache?.listItems?.find(section => section.id == id)) {
-				blockType = 'listitem';
-			}
-			blockType = blockType ?? 'block';
-			return (path ? `${noteTitleDisplay} - ` : '')
-				+ `${blockType}:${id}`;
-		}
-
-		return noteTitleDisplay;
-	}
-}
-```
+https://github.com/RyotaUshio/obsidian-mathlinks-api-sample-plugin/blob/983d2fb27d03faefa43cd6f6048a47e69bac97a8/main.ts#L23-L62
 
 ### Register your provider
 
@@ -125,6 +83,22 @@ export default class MyPlugin extends Plugin {
 Use `update(app: App, file?: TFile)` to inform MathLinks that it should update the display text of links.
 If `file` is given, MathLinks will only update the notes affected by changes in that file.
 Otherwise, MathLinks will update all notes currently open.
+
+## Source mode
+
+`Provider` has `enableInSourceMode` property, which controls if your provider gets activated in Source mode or not. 
+The default implementation can be found [here](https://github.com/zhaoshenzhai/obsidian-mathlinks/blob/cb9ef4378050514d20ed94ceb88a1c21ddef7b77/src/api/provider.ts#L17-L24).
+
+You can keep your provider in sync with the plugin's settings with the following getter/setter.
+
+https://github.com/RyotaUshio/obsidian-mathlinks-api-sample-plugin/blob/983d2fb27d03faefa43cd6f6048a47e69bac97a8/main.ts#L64-L74
+
+If you want to just follow MathLinks's settings, you can use the following getter:
+
+https://github.com/RyotaUshio/obsidian-mathlinks-api-sample-plugin/blob/983d2fb27d03faefa43cd6f6048a47e69bac97a8/main.ts#L80-L82
+
+> [!NOTE]
+> In source mode, only wikilinks `[[...]]` are supported.
 
 ## Remarks
 
