@@ -1,12 +1,18 @@
-import { BlockSubpathResult, HeadingSubpathResult, Plugin, PluginSettingTab, Setting, TFile } from 'obsidian';
-import { Provider, addProvider } from 'obsidian-mathlinks';
+import { normalizePath } from 'obsidian';
+import { BlockSubpathResult, HeadingSubpathResult, Plugin, PluginSettingTab, Setting, TFile, ToggleComponent } from 'obsidian';
+import { Provider, addProvider, update } from 'obsidian-mathlinks';
+import { text } from 'stream/consumers';
 
 interface MyPluginSettings {
 	key: string;
+	enableInSourceMode: boolean;
+	excludedFolders: string[];
 }
 
 const DEFAULT_SETTINGS: MyPluginSettings = {
-	key: 'link-display'
+	key: 'link-display',
+	enableInSourceMode: false,
+	excludedFolders: [],
 }
 
 class MyProvider extends Provider {
@@ -20,6 +26,11 @@ class MyProvider extends Provider {
 		targetSubpathResult: HeadingSubpathResult | BlockSubpathResult | null,
 		sourceFile: TFile
 	): string | null {
+
+		// ignore excluded folders
+		if (this.plugin.settings.excludedFolders.some(folder =>
+			sourceFile.path.startsWith(normalizePath(folder + '/')))
+		) return null;
 
 		const { app, settings } = this.plugin;
 		const { path } = parsedLinktext;
@@ -49,17 +60,37 @@ class MyProvider extends Provider {
 
 		return noteTitleDisplay;
 	}
+
+	get enableInSourceMode() {
+		// read from the plugin settings
+		return this.plugin.settings.enableInSourceMode;
+	}
+
+	set enableInSourceMode(enable: boolean) {
+		// overwrite to the plugin settings
+		this.plugin.settings.enableInSourceMode = enable;
+		this.plugin.saveSettings();
+		// inform MathLinks that the settings have changed
+		update(this.plugin.app);
+	}
+
+	/**
+	 * If you want to just follow the settings for MathLinks, you can just use the following (getter only):
+	 */
+	// get enableInSourceMode() {
+	//     return this.mathLinks.nativeProvider.enableInSourceMode;
+	// }
 }
 
 export default class MyPlugin extends Plugin {
 	settings: MyPluginSettings;
+	provider: MyProvider;
 
 	async onload() {
 		await this.loadSettings();
 		this.addSettingTab(new MySettingTab(this));
-		this.addChild(
-			addProvider(this.app, (mathLinks) => new MyProvider(mathLinks, this))
-		);
+		this.provider = addProvider(this.app, (mathLinks) => new MyProvider(mathLinks, this));
+		this.addChild(this.provider);
 	}
 
 	async loadSettings() {
@@ -87,6 +118,27 @@ class MySettingTab extends PluginSettingTab {
 				text.setValue(this.plugin.settings.key)
 					.onChange(async (key) => {
 						this.plugin.settings.key = key;
+						await this.plugin.saveSettings();
+					})
+			);
+
+		new Setting(containerEl)
+			.setName("Enable in Source mode")
+			.setDesc("Currently, only wikilinks are supported in Source mode.")
+			.addToggle((toggle: ToggleComponent) => {
+				toggle.setValue(this.plugin.provider.enableInSourceMode)
+					.onChange((value: boolean) => {
+						this.plugin.provider.enableInSourceMode = value;
+					});
+			});
+
+		new Setting(containerEl)
+			.setName('Excluded folders')
+			.setDesc('Comma-separated list of folder where you want to deactivate this plugin.')
+			.addText(text =>
+				text.setValue(this.plugin.settings.excludedFolders.join(','))
+					.onChange(async (value) => {
+						this.plugin.settings.excludedFolders = value.split(',').map(s => s.trim());
 						await this.plugin.saveSettings();
 					})
 			);
