@@ -1,7 +1,6 @@
 import { normalizePath } from 'obsidian';
 import { BlockSubpathResult, HeadingSubpathResult, Plugin, PluginSettingTab, Setting, TFile, ToggleComponent } from 'obsidian';
 import { Provider, addProvider, update } from 'obsidian-mathlinks';
-import { text } from 'stream/consumers';
 
 interface MyPluginSettings {
 	key: string;

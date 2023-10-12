@@ -89,7 +89,7 @@ Otherwise, MathLinks will update all notes currently open.
 `Provider` has `enableInSourceMode` property, which controls if your provider gets activated in Source mode or not. 
 The default implementation can be found [here](https://github.com/zhaoshenzhai/obsidian-mathlinks/blob/cb9ef4378050514d20ed94ceb88a1c21ddef7b77/src/api/provider.ts#L17-L24).
 
-You can keep your provider in sync with the plugin's settings with the following getter/setter.
+You can keep your provider in sync with the plugin's settings by the following getter/setter.
 
 https://github.com/RyotaUshio/obsidian-mathlinks-api-sample-plugin/blob/983d2fb27d03faefa43cd6f6048a47e69bac97a8/main.ts#L64-L74
 
