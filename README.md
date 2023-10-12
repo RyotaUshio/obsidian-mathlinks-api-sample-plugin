@@ -82,9 +82,9 @@ Use `update(app: App, file?: TFile)` to inform MathLinks that it should update t
 If `file` is given, MathLinks will only update the notes affected by changes in that file.
 Otherwise, MathLinks will update all notes currently open.
 
-## Source mode
+### Source mode
 
-`Provider` has `enableInSourceMode` property, which controls if your provider gets activated in Source mode or not. 
+`Provider` has `enableInSourceMode` property, which controls whether your provider gets activated in Source mode or not. 
 The default implementation can be found [here](https://github.com/zhaoshenzhai/obsidian-mathlinks/blob/cb9ef4378050514d20ed94ceb88a1c21ddef7b77/src/api/provider.ts#L17-L24).
 
 You can keep your provider in sync with the plugin's settings by the following getter/setter.
