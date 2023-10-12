@@ -34,9 +34,7 @@ $ npm i -D obsidian-mathlinks
 
 ### Import
 
-```ts
-import { Provider, addProvider } from 'obsidian-mathlinks';
-```
+https://github.com/RyotaUshio/obsidian-mathlinks-api-sample-plugin/blob/caaeeb06199f76c9231e329c6e0896f4af178f9b/main.ts#L3
 
 ### Implement a custom provider
 
