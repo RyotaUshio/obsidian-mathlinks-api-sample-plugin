@@ -113,7 +113,7 @@ export default class MyPlugin extends Plugin {
 	async onload() {
         ...
 		this.addChild(
-			addProvider(this.app, (mathLinks: any) => new MyProvider(mathLinks, this))
+			addProvider(this.app, (mathLinks) => new MyProvider(mathLinks, this))
 		);		
         ...
 	}
