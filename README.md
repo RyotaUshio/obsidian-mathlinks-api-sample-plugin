@@ -18,13 +18,13 @@ Moreover, if the note's property contains a certain key that the user defines in
 
 ![with property](fig/with-property.png)
 
-> [!WARNING]
-> This plugin uses currently unreleased APIs.
-
 
 ## Usage
 
 In this section, I will walk you through the process of building a simple plugin using MathLinks API. 
+
+> [!WARNING]
+> Make sure that both the npm package `obsidian-mathlinks` and the Obsidian plugin _MathLinks_ are version 0.5.1 or higher.
 
 ### Installation
 
