@@ -63,14 +63,17 @@ In the `onload` method of your plugin, register your custom provider.
 - `addProvider` function creates an instance of your provider class using the factory function passed as the second parameter, and then registers it to MathLinks. Finally, it returns the provider object.
 	- You have accesss to the MathLinks plugin instance inside the factory function.
 - In most cases, you will want to pass the resulting provider to `addChild` method of your plugin so that the provider will be properly unloaded when your plugin gets disabled. Otherwise, you are responsible to manage its lifecycle on your own.
+- Make sure you wrap the `addProvider` call in `this.app.workspace.onLayoutReady(() => {...})` so that it will be called after MathLinks is loaded.
 
 ```ts
 export default class MyPlugin extends Plugin {
 	async onload() {
         ...
-		this.addChild(
-			addProvider(this.app, (mathLinks) => new MyProvider(mathLinks, this))
-		);		
+		this.app.workspace.onLayoutReady(() => {
+		    this.addChild(
+			    addProvider(this.app, (mathLinks) => new MyProvider(mathLinks, this))
+		    );
+		});
         ...
 	}
 }

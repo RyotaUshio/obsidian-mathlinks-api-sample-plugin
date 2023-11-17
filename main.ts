@@ -88,8 +88,10 @@ export default class MyPlugin extends Plugin {
 	async onload() {
 		await this.loadSettings();
 		this.addSettingTab(new MySettingTab(this));
-		this.provider = addProvider(this.app, (mathLinks) => new MyProvider(mathLinks, this));
-		this.addChild(this.provider);
+		this.app.workspace.onLayoutReady(() => {
+			this.provider = addProvider(this.app, (mathLinks) => new MyProvider(mathLinks, this));
+			this.addChild(this.provider);
+		});
 	}
 
 	async loadSettings() {
